@@ -7,6 +7,8 @@ import type { Bill, Insight } from "@/lib/api";
 import UsageChart from "@/components/UsageChart";
 import StatCard from "@/components/StatCard";
 import InsightCard from "@/components/InsightCard";
+import RecommendationCard, { type ProviderRec } from "@/components/RecommendationCard";
+import SavingsTipCard, { type SavingsTip } from "@/components/SavingsTipCard";
 
 interface PageProps {
   params: Promise<{ household_id: string }>;
@@ -14,6 +16,14 @@ interface PageProps {
 
 function SkeletonBlock({ className }: { className?: string }) {
   return <div className={`shimmer rounded-xl ${className}`} />;
+}
+
+function parseSafe<T>(str: string): T | null {
+  try {
+    return JSON.parse(str) as T;
+  } catch {
+    return null;
+  }
 }
 
 export default function DashboardPage({ params }: PageProps) {
@@ -47,14 +57,31 @@ export default function DashboardPage({ params }: PageProps) {
   }, [householdId]);
 
   const latest = bills[0];
-  const rate = latest
-    ? Number(latest.total_cost) / Number(latest.kwh_used)
-    : 0;
+  const rate = latest ? Number(latest.total_cost) / Number(latest.kwh_used) : 0;
+
+  // Split insights by type
+  const providerRecs: ProviderRec[] = insights
+    .filter((i) => i.insight_type === "provider_recommendation")
+    .map((i) => parseSafe<ProviderRec>(i.insight_value))
+    .filter(Boolean) as ProviderRec[];
+
+  const savingsTips: SavingsTip[] = insights
+    .filter((i) => i.insight_type === "savings_tip")
+    .map((i) => parseSafe<SavingsTip>(i.insight_value))
+    .filter(Boolean) as SavingsTip[];
+
+  const baseInsights = insights.filter(
+    (i) => i.insight_type !== "provider_recommendation" && i.insight_type !== "savings_tip"
+  );
+
+  // Total potential savings
+  const bestProviderAnnual =
+    providerRecs.length > 0 ? Math.max(...providerRecs.map((r) => r.annual_savings)) : 0;
+  const tipsAnnual = savingsTips.reduce((s, t) => s + t.monthly_savings, 0) * 12;
+  const totalSavings = bestProviderAnnual + tipsAnnual;
 
   return (
-    <div
-      className="dark-page relative min-h-screen overflow-x-hidden"
-    >
+    <div className="dark-page relative min-h-screen overflow-x-hidden">
       {/* Background orbs */}
       <div className="orb orb-blue" style={{ top: "-100px", left: "-150px" }} />
       <div className="orb orb-purple" style={{ bottom: "0px", right: "-100px" }} />
@@ -63,7 +90,7 @@ export default function DashboardPage({ params }: PageProps) {
       <header
         className="sticky top-0 z-50 flex h-14 items-center justify-between px-6"
         style={{
-          background: "rgba(10,15,30,0.8)",
+          background: "rgba(10,15,30,0.85)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
@@ -91,15 +118,18 @@ export default function DashboardPage({ params }: PageProps) {
 
       {/* ── Main content ───────────────────────────────────────── */}
       <main className="relative z-10 mx-auto max-w-5xl px-6 pb-20 pt-10">
+
         {/* Loading skeleton */}
         {loading && (
           <div className="space-y-6">
             <SkeletonBlock className="h-8 w-56" />
+            <SkeletonBlock className="h-24 w-full" />
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {[...Array(4)].map((_, i) => <SkeletonBlock key={i} className="h-28" />)}
             </div>
-            <SkeletonBlock className="h-48" />
-            <SkeletonBlock className="h-36" />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {[...Array(3)].map((_, i) => <SkeletonBlock key={i} className="h-56" />)}
+            </div>
             <SkeletonBlock className="h-64" />
           </div>
         )}
@@ -116,19 +146,66 @@ export default function DashboardPage({ params }: PageProps) {
 
         {!loading && !error && (
           <div className="space-y-6">
-            {/* Page header */}
+
+            {/* ── Page header ───────────────────────────────────── */}
             <div className="fade-up fade-up-1">
               <h1 className="text-2xl font-bold tracking-tight text-white">
                 Energy Report
               </h1>
-              <p className="mt-0.5 text-xs font-mono text-slate-600">
+              <p className="mt-0.5 text-xs font-mono text-slate-700">
                 {householdId}
               </p>
             </div>
 
+            {/* ── Savings potential banner ───────────────────────── */}
+            {totalSavings > 0 && (
+              <div
+                className="fade-up fade-up-2 relative overflow-hidden rounded-2xl p-5"
+                style={{
+                  background: "linear-gradient(135deg, rgba(34,197,94,0.10) 0%, rgba(16,185,129,0.07) 100%)",
+                  border: "1px solid rgba(34,197,94,0.18)",
+                }}
+              >
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
+                      style={{ background: "rgba(34,197,94,0.12)" }}
+                    >
+                      💰
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400/60 mb-0.5">
+                        Savings Potential Found
+                      </p>
+                      <p className="text-xl font-bold text-white">
+                        Save up to{" "}
+                        <span className="text-emerald-400">${totalSavings.toFixed(0)}/year</span>
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {providerRecs.length > 0 && `${providerRecs.length} cheaper provider${providerRecs.length !== 1 ? "s" : ""} found`}
+                        {providerRecs.length > 0 && savingsTips.length > 0 && " · "}
+                        {savingsTips.length > 0 && `${savingsTips.length} savings tips`}
+                      </p>
+                    </div>
+                  </div>
+                  <a
+                    href="#switch-save"
+                    className="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-emerald-400 transition-all hover:scale-105"
+                    style={{
+                      background: "rgba(34,197,94,0.10)",
+                      border: "1px solid rgba(34,197,94,0.20)",
+                    }}
+                  >
+                    See recommendations ↓
+                  </a>
+                </div>
+              </div>
+            )}
+
             {/* ── Stat tiles ───────────────────────────────────── */}
             {latest ? (
-              <div className="fade-up fade-up-2 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div className="fade-up fade-up-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <StatCard
                   label="Total Cost"
                   value={Number(latest.total_cost)}
@@ -169,13 +246,28 @@ export default function DashboardPage({ params }: PageProps) {
                   progress={0.85}
                   accent="#F59E0B"
                   delay={240}
-                  sub={new Date(latest.billing_period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " – " +
-                    new Date(latest.billing_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
+                  sub={
+                    new Date(latest.billing_period_start).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    }) +
+                    " – " +
+                    new Date(latest.billing_period_end).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "2-digit",
+                    })
+                  }
                 />
               </div>
             ) : (
-              <div className="fade-up fade-up-2 rounded-2xl p-8 text-center text-sm text-slate-500"
-                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <div
+                className="fade-up fade-up-3 rounded-2xl p-8 text-center text-sm text-slate-500"
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
                 No bills uploaded yet.
               </div>
             )}
@@ -183,7 +275,7 @@ export default function DashboardPage({ params }: PageProps) {
             {/* ── Latest bill metadata ─────────────────────────── */}
             {latest && (
               <div
-                className="fade-up fade-up-3 rounded-2xl p-5"
+                className="fade-up fade-up-4 rounded-2xl p-5"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   border: "1px solid rgba(255,255,255,0.07)",
@@ -198,7 +290,10 @@ export default function DashboardPage({ params }: PageProps) {
                   {latest.utility_provider && (
                     <span
                       className="rounded-full px-3 py-1 text-xs font-medium text-blue-300"
-                      style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}
+                      style={{
+                        background: "rgba(59,130,246,0.1)",
+                        border: "1px solid rgba(59,130,246,0.2)",
+                      }}
                     >
                       {latest.utility_provider}
                     </span>
@@ -209,44 +304,102 @@ export default function DashboardPage({ params }: PageProps) {
                   {latest.rate_plan && (
                     <div
                       className="rounded-lg px-3 py-2 text-xs"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                      style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }}
                     >
                       <span className="text-slate-500">Rate Plan </span>
-                      <span className="font-mono font-semibold text-slate-200">{latest.rate_plan}</span>
+                      <span className="font-mono font-semibold text-slate-200">
+                        {latest.rate_plan}
+                      </span>
                     </div>
                   )}
                   {latest.account_last_four && (
                     <div
                       className="rounded-lg px-3 py-2 text-xs"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                      style={{
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }}
                     >
                       <span className="text-slate-500">Account </span>
-                      <span className="font-mono font-semibold text-slate-200">••••{latest.account_last_four}</span>
+                      <span className="font-mono font-semibold text-slate-200">
+                        ••••{latest.account_last_four}
+                      </span>
                     </div>
                   )}
                   <div
                     className="rounded-lg px-3 py-2 text-xs"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                    }}
                   >
                     <span className="text-slate-500">Period </span>
                     <span className="font-mono font-semibold text-slate-200">
-                      {new Date(latest.billing_period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {new Date(latest.billing_period_start).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
                       {" – "}
-                      {new Date(latest.billing_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {new Date(latest.billing_period_end).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
                     </span>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* ── AI Insights ──────────────────────────────────── */}
-            {insights.length > 0 && (
-              <div className="fade-up fade-up-4 space-y-3">
+            {/* ── Switch & Save ─────────────────────────────────── */}
+            {providerRecs.length > 0 && (
+              <div id="switch-save" className="fade-up fade-up-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    Switch &amp; Save
+                  </p>
+                  <span className="text-xs text-emerald-400/60">
+                    {providerRecs.length} alternative{providerRecs.length !== 1 ? "s" : ""} found
+                  </span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {providerRecs.map((rec, i) => (
+                    <RecommendationCard key={i} rec={rec} currentRate={rate} index={i} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Reduce Your Bill ─────────────────────────────── */}
+            {savingsTips.length > 0 && (
+              <div className="fade-up fade-up-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    Reduce Your Bill
+                  </p>
+                  <span className="text-xs text-amber-400/60">
+                    ${savingsTips.reduce((s, t) => s + t.monthly_savings, 0).toFixed(0)}/mo potential
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {savingsTips.map((tip, i) => (
+                    <SavingsTipCard key={i} tip={tip} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── AI Insights (rate analysis, trends) ───────────── */}
+            {baseInsights.length > 0 && (
+              <div className="space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                  AI Insights
+                  Rate &amp; Usage Analysis
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {insights.map((insight) => (
+                  {baseInsights.map((insight) => (
                     <InsightCard key={insight.id} insight={insight} />
                   ))}
                 </div>
@@ -256,7 +409,7 @@ export default function DashboardPage({ params }: PageProps) {
             {/* ── Usage chart ──────────────────────────────────── */}
             {bills.length > 0 && (
               <div
-                className="fade-up fade-up-5 rounded-2xl p-6"
+                className="rounded-2xl p-6"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   border: "1px solid rgba(255,255,255,0.07)",
@@ -282,7 +435,7 @@ export default function DashboardPage({ params }: PageProps) {
             {/* ── Bills table ──────────────────────────────────── */}
             {bills.length > 1 && (
               <div
-                className="fade-up fade-up-6 rounded-2xl overflow-hidden"
+                className="rounded-2xl overflow-hidden"
                 style={{
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.06)",
@@ -297,20 +450,26 @@ export default function DashboardPage({ params }: PageProps) {
                   <thead>
                     <tr className="border-b border-white/5">
                       {["Period", "Provider", "kWh", "Cost", "Rate"].map((h) => (
-                        <th key={h} className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        <th
+                          key={h}
+                          className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider"
+                        >
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {bills.map((bill, i) => (
+                    {bills.map((bill) => (
                       <tr
                         key={bill.id}
                         className="border-b border-white/[0.03] transition-colors duration-150 hover:bg-white/[0.02]"
                       >
                         <td className="px-6 py-3.5 text-slate-300 font-medium">
-                          {new Date(bill.billing_period_start).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                          {new Date(bill.billing_period_start).toLocaleDateString("en-US", {
+                            month: "short",
+                            year: "numeric",
+                          })}
                         </td>
                         <td className="px-6 py-3.5 text-slate-500">
                           {bill.utility_provider ?? "—"}
@@ -335,7 +494,8 @@ export default function DashboardPage({ params }: PageProps) {
             <div
               className="relative overflow-hidden rounded-2xl p-10 text-center"
               style={{
-                background: "linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.12) 50%, rgba(59,130,246,0.08) 100%)",
+                background:
+                  "linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.12) 50%, rgba(59,130,246,0.08) 100%)",
                 border: "1px solid rgba(59,130,246,0.2)",
               }}
             >
@@ -343,20 +503,18 @@ export default function DashboardPage({ params }: PageProps) {
               <div
                 className="pointer-events-none absolute inset-0 opacity-[0.03]"
                 style={{
-                  backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
                   backgroundSize: "32px 32px",
                 }}
               />
-
               <div className="relative z-10">
                 <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3">
                   Track more · save more
                 </p>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  Got another bill?
-                </h3>
+                <h3 className="text-xl font-bold text-white mb-2">Got another bill?</h3>
                 <p className="text-sm text-slate-400 mb-7 max-w-sm mx-auto">
-                  Each bill you add improves your insights and makes your annual forecast more accurate.
+                  Each bill improves your insights and makes your annual savings forecast more accurate.
                 </p>
                 <Link
                   href="/upload"
@@ -367,6 +525,7 @@ export default function DashboardPage({ params }: PageProps) {
                 </Link>
               </div>
             </div>
+
           </div>
         )}
       </main>

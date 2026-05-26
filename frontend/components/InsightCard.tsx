@@ -31,6 +31,18 @@ const CONFIG: Record<string, {
     icon: "◎",
     label: "Annual Forecast",
   },
+  provider_recommendation: {
+    gradient: "linear-gradient(180deg, #22C55E, #10B981)",
+    bg: "rgba(34,197,94,0.06)",
+    icon: "⇄",
+    label: "Provider Switch",
+  },
+  savings_tip: {
+    gradient: "linear-gradient(180deg, #F59E0B, #F97316)",
+    bg: "rgba(245,158,11,0.06)",
+    icon: "💡",
+    label: "Savings Tip",
+  },
 };
 
 const DEFAULT_CONFIG = {

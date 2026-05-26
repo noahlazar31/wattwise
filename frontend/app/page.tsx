@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { Upload, Sparkles, TrendingDown } from "lucide-react";
+import { Upload, Sparkles, TrendingDown, BarChart3 } from "lucide-react";
 
-/* ── Design tokens (mirrored from CSS for inline use) ── */
-const A = "#F5A623";   // accent amber
-const AH = "#E09415";  // accent hover
+const A = "#F5A623";
 const DARK = "#111111";
 const MUTED = "#6B7280";
 const SURFACE = "#F7F7F5";
@@ -14,14 +12,13 @@ function Navbar() {
     <header
       className="fixed inset-x-0 top-0 z-50 flex h-16 items-center"
       style={{
-        background: "rgba(255,255,255,0.85)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(0,0,0,0.07)",
+        background: "rgba(255,255,255,0.88)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(0,0,0,0.06)",
       }}
     >
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6">
-        {/* Logo */}
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2 select-none">
           <span
             className="flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold"
@@ -34,19 +31,18 @@ function Navbar() {
           </span>
         </Link>
 
-        {/* Center link */}
-        <a
-          href="#how-it-works"
-          className="hidden text-sm font-medium transition-colors duration-150 hover:text-gray-900 sm:block"
-          style={{ color: MUTED }}
-        >
-          How it works
-        </a>
+        <nav className="hidden items-center gap-6 sm:flex">
+          <a href="#features" className="text-sm font-medium transition-colors hover:text-gray-900" style={{ color: MUTED }}>
+            Features
+          </a>
+          <a href="#how-it-works" className="text-sm font-medium transition-colors hover:text-gray-900" style={{ color: MUTED }}>
+            How it works
+          </a>
+        </nav>
 
-        {/* CTA */}
         <Link
           href="/upload"
-          className="rounded-full px-4 py-2 text-sm font-semibold transition-all duration-150 hover:scale-105"
+          className="rounded-full px-4 py-2 text-sm font-semibold transition-all duration-150 hover:scale-105 hover:brightness-95"
           style={{ background: A, color: DARK }}
         >
           Try it free →
@@ -56,225 +52,306 @@ function Navbar() {
   );
 }
 
+/* ── Sample output card (hero right side) ───────────────── */
+function SampleOutputCard() {
+  return (
+    <div className="relative mx-auto max-w-md lg:mx-0">
+      {/* Glow */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-3xl blur-3xl opacity-20"
+        style={{ background: "radial-gradient(circle, rgba(245,166,35,0.6) 0%, transparent 70%)" }}
+      />
+
+      <div
+        className="relative overflow-hidden rounded-2xl"
+        style={{
+          background: "#0A0F1E",
+          border: "1px solid rgba(255,255,255,0.07)",
+          boxShadow: "0 32px 80px rgba(0,0,0,0.25)",
+        }}
+      >
+        {/* Titlebar */}
+        <div
+          className="flex items-center justify-between px-5 py-3.5"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <p className="text-xs font-semibold text-slate-400">Your Analysis</p>
+          </div>
+          <span
+            className="rounded-full px-2 py-0.5 text-xs font-bold text-red-400"
+            style={{ background: "rgba(239,68,68,0.12)" }}
+          >
+            ⚠ Overpaying
+          </span>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Rate comparison */}
+          <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-3">
+              Rate Comparison
+            </p>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <p className="text-xs text-slate-500 mb-0.5">Your rate</p>
+                <p className="text-2xl font-black text-white">
+                  $0.21<span className="text-xs font-normal text-slate-500">/kWh</span>
+                </p>
+              </div>
+              <div className="text-slate-700 text-lg">↔</div>
+              <div className="flex-1 text-right">
+                <p className="text-xs text-slate-500 mb-0.5">US average</p>
+                <p className="text-2xl font-black" style={{ color: A }}>
+                  $0.16<span className="text-xs font-normal text-slate-500">/kWh</span>
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-16 text-xs text-slate-600">Yours</span>
+                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <div className="h-full rounded-full bg-red-500" style={{ width: "70%" }} />
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-16 text-xs text-slate-600">Average</span>
+                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <div className="h-full rounded-full" style={{ width: "53%", background: A }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Provider recommendation */}
+          <div
+            className="rounded-xl p-4"
+            style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.14)" }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400/60 mb-2">
+              Switch &amp; Save
+            </p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-bold text-white">Green Mountain Energy</p>
+                <p className="text-xs text-slate-500 mt-0.5">$0.11/kWh · Available in your area</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-2xl font-black text-emerald-400">$45</p>
+                <p className="text-xs text-emerald-400/50">/month saved</p>
+              </div>
+            </div>
+            <div
+              className="mt-3 rounded-lg py-1.5 text-center text-xs font-semibold text-emerald-400"
+              style={{ background: "rgba(34,197,94,0.1)" }}
+            >
+              $540 annual savings ✓
+            </div>
+          </div>
+
+          {/* Tip preview */}
+          <div
+            className="flex items-center gap-3 rounded-xl p-3"
+            style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.14)" }}
+          >
+            <span className="text-lg">💡</span>
+            <div>
+              <p className="text-xs font-semibold" style={{ color: A }}>Time-of-Use Pricing</p>
+              <p className="text-xs text-slate-500">Run appliances after 9pm · save ~$20/mo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Hero ────────────────────────────────────────────────── */
 function Hero() {
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-16 text-center">
-      {/* Subtle radial glow */}
+    <section className="relative min-h-screen overflow-hidden px-6 pt-16 flex items-center">
+      {/* Gradient bg */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[520px]"
+        className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,166,35,0.10) 0%, transparent 70%)",
+            "radial-gradient(ellipse 70% 50% at 50% -10%, rgba(245,166,35,0.10) 0%, transparent 60%)",
         }}
       />
 
-      {/* Badge */}
-      <div
-        className="fade-up fade-up-1 mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide"
-        style={{
-          background: "#FEF9EE",
-          border: `1px solid rgba(245,166,35,0.3)`,
-          color: "#92400E",
-        }}
-      >
-        <span
-          className="h-1.5 w-1.5 rounded-full"
-          style={{ background: A }}
-        />
-        AI-powered energy analysis
-      </div>
+      <div className="mx-auto w-full max-w-6xl py-16">
+        <div className="grid lg:grid-cols-2 gap-14 items-center">
+          {/* Left: Copy */}
+          <div>
+            {/* Badge */}
+            <div
+              className="fade-up fade-up-1 mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide"
+              style={{ background: "#FEF9EE", border: "1px solid rgba(245,166,35,0.3)", color: "#92400E" }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: A }} />
+              AI-powered energy analysis
+            </div>
 
-      {/* Headline */}
-      <h1
-        className="fade-up fade-up-2 max-w-3xl font-extrabold leading-[1.08] tracking-tight"
-        style={{
-          fontSize: "clamp(2.5rem, 6vw, 5rem)",
-          color: DARK,
-        }}
-      >
-        Find out if you&apos;re
-        <br />
-        <span style={{ color: A }}>overpaying</span> for energy
-      </h1>
+            <h1
+              className="fade-up fade-up-2 font-extrabold leading-[1.05] tracking-tight mb-5"
+              style={{ fontSize: "clamp(2.4rem, 5vw, 4.2rem)", color: DARK }}
+            >
+              Stop overpaying
+              <br />
+              for <span style={{ color: A }}>electricity</span>
+            </h1>
 
-      {/* Subtitle */}
-      <p
-        className="fade-up fade-up-3 mt-5 max-w-xl leading-relaxed"
-        style={{
-          fontSize: "clamp(1rem, 2vw, 1.2rem)",
-          color: MUTED,
-        }}
-      >
-        Upload your utility bill and we&apos;ll instantly compare your rate to the
-        national average — no account, no manual entry.
-      </p>
+            <p
+              className="fade-up fade-up-3 text-lg leading-relaxed mb-8 max-w-lg"
+              style={{ color: MUTED }}
+            >
+              Upload your utility bill. Claude AI finds cheaper providers in your
+              area and gives you a personalized plan to cut your bill — in under
+              10 seconds.
+            </p>
 
-      {/* CTA */}
-      <div className="fade-up fade-up-4 mt-8">
-        <Link
-          href="/upload"
-          className="inline-flex items-center gap-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
-          style={{
-            background: A,
-            color: DARK,
-            padding: "14px 32px",
-            fontSize: "1rem",
-            boxShadow: `0 4px 20px rgba(245,166,35,0.35)`,
-          }}
-        >
-          Upload Your Bill
-          <span className="text-lg">→</span>
-        </Link>
-        <p className="mt-3 text-xs" style={{ color: MUTED }}>
-          Free · No account required · Results in under 10 seconds
-        </p>
-      </div>
+            <div className="fade-up fade-up-4 flex flex-wrap items-center gap-4 mb-8">
+              <Link
+                href="/upload"
+                className="inline-flex items-center gap-2 rounded-full font-semibold shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
+                style={{
+                  background: A,
+                  color: DARK,
+                  padding: "14px 28px",
+                  fontSize: "1rem",
+                  boxShadow: `0 4px 20px rgba(245,166,35,0.35)`,
+                }}
+              >
+                Analyze My Bill
+                <span className="text-lg">→</span>
+              </Link>
+              <a
+                href="#how-it-works"
+                className="text-sm font-medium transition-colors hover:text-gray-600"
+                style={{ color: "#9CA3AF" }}
+              >
+                See how it works ↓
+              </a>
+            </div>
 
-      {/* Animated upload hint */}
-      <div className="fade-up fade-up-5 mt-10 w-full max-w-sm">
-        <div
-          className="relative rounded-xl p-6 text-center"
-          style={{
-            background: SURFACE,
-          }}
-        >
-          {/* SVG dashed animated border */}
-          <svg
-            className="pointer-events-none absolute inset-0 h-full w-full"
-            style={{ borderRadius: "12px" }}
-          >
-            <rect
-              x="1" y="1"
-              width="calc(100% - 2px)" height="calc(100% - 2px)"
-              rx="11" ry="11"
-              fill="none"
-              stroke={A}
-              strokeWidth="1.5"
-              className="dash-march"
-              style={{ opacity: 0.6 }}
-            />
-          </svg>
-
-          <div
-            className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl"
-            style={{ background: "#FEF3C7" }}
-          >
-            <Upload size={18} style={{ color: A }} />
+            <div className="fade-up fade-up-5 flex flex-wrap items-center gap-5 text-xs" style={{ color: "#9CA3AF" }}>
+              <span className="flex items-center gap-1.5">
+                <span style={{ color: "#22C55E" }}>✓</span> Free forever
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span style={{ color: "#22C55E" }}>✓</span> No account needed
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span style={{ color: "#22C55E" }}>✓</span> Results in 10 sec
+              </span>
+            </div>
           </div>
-          <p className="text-sm font-medium" style={{ color: DARK }}>
-            Drop your bill here
-          </p>
-          <p className="mt-0.5 text-xs" style={{ color: MUTED }}>
-            JPG, PNG, or PDF · max 10 MB
-          </p>
+
+          {/* Right: Product preview */}
+          <div className="fade-up fade-up-3">
+            <SampleOutputCard />
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-/* ── How it works ───────────────────────────────────────── */
-const STEPS = [
+/* ── Stats strip ────────────────────────────────────────── */
+const STATS = [
+  { value: "$0.16", label: "US average rate per kWh" },
+  { value: "~30%", label: "of households overpay vs benchmark" },
+  { value: "$540+", label: "average annual savings found" },
+];
+
+function StatsStrip() {
+  return (
+    <section style={{ background: SURFACE }} className="py-12">
+      <div className="mx-auto max-w-5xl px-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+          {STATS.map(({ value, label }) => (
+            <div key={value} className="py-8 sm:py-4 sm:px-10 text-center">
+              <p className="text-3xl font-black tracking-tight mb-1" style={{ color: DARK }}>
+                {value}
+              </p>
+              <p className="text-sm" style={{ color: MUTED }}>
+                {label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Features ───────────────────────────────────────────── */
+const FEATURES = [
   {
-    num: "01",
-    icon: Upload,
-    title: "Upload Your Bill",
-    body: "Drag and drop a photo or PDF of your utility bill. Any format, any provider.",
+    icon: BarChart3,
+    title: "Rate Analysis",
+    body: "See exactly how your $/kWh compares to the US average. Know instantly if you're overpaying.",
+    accent: "#3B82F6",
+    bg: "rgba(59,130,246,0.06)",
   },
   {
-    num: "02",
-    icon: Sparkles,
-    title: "AI Analyzes It",
-    body: "Claude extracts your usage, cost, and rate plan in seconds — zero manual entry.",
-  },
-  {
-    num: "03",
     icon: TrendingDown,
-    title: "See Your Savings",
-    body: "Get a clear breakdown showing how your rate stacks up against the $0.16/kWh national average.",
+    title: "Provider Switch",
+    body: "Get 2–3 real cheaper alternatives in your area with exact monthly and annual savings calculated.",
+    accent: "#22C55E",
+    bg: "rgba(34,197,94,0.06)",
+  },
+  {
+    icon: Sparkles,
+    title: "Savings Action Plan",
+    body: "Personalized tips — time-of-use pricing, smart equipment, behavioral changes — with dollar estimates.",
+    accent: "#F5A623",
+    bg: "rgba(245,166,35,0.06)",
+  },
+  {
+    icon: Upload,
+    title: "Usage Trends",
+    body: "Upload bills over time to track consumption, spot seasonal patterns, and measure your improvements.",
+    accent: "#8B5CF6",
+    bg: "rgba(139,92,246,0.06)",
   },
 ];
 
-function HowItWorks() {
+function Features() {
   return (
-    <section
-      id="how-it-works"
-      className="py-24"
-      style={{ background: SURFACE }}
-    >
+    <section id="features" className="py-24" style={{ background: "#FFFFFF" }}>
       <div className="mx-auto max-w-5xl px-6">
-        {/* Header */}
         <div className="mb-14 text-center">
-          <p
-            className="mb-2 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: A }}
-          >
-            Simple process
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: A }}>
+            Everything you get
           </p>
-          <h2
-            className="text-3xl font-bold tracking-tight"
-            style={{ color: DARK }}
-          >
-            How it works
+          <h2 className="text-3xl font-bold tracking-tight" style={{ color: DARK }}>
+            Your complete energy report
           </h2>
-          <p className="mt-3 text-sm" style={{ color: MUTED }}>
-            Three steps from bill to savings — powered by Claude AI.
+          <p className="mt-3 text-sm max-w-md mx-auto" style={{ color: MUTED }}>
+            One bill upload gives you everything you need to cut your energy costs today.
           </p>
         </div>
 
-        {/* Grid */}
-        <div className="relative grid gap-5 sm:grid-cols-3">
-          {/* Arrow connectors (desktop) */}
-          <div className="pointer-events-none absolute inset-x-0 top-10 hidden items-center sm:flex">
-            <div className="flex-1" />
-            {[0, 1].map((i) => (
-              <div key={i} className="flex flex-1 items-center justify-center">
-                <svg width="48" height="16" viewBox="0 0 48 16" fill="none">
-                  <path
-                    d="M0 8 L40 8 M34 2 L40 8 L34 14"
-                    stroke={A}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeOpacity="0.5"
-                  />
-                </svg>
-              </div>
-            ))}
-            <div className="flex-1" />
-          </div>
-
-          {STEPS.map(({ num, icon: Icon, title, body }) => (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map(({ icon: Icon, title, body, accent, bg }) => (
             <div
-              key={num}
-              className="group relative rounded-xl p-7 transition-all duration-200 hover:-translate-y-1"
+              key={title}
+              className="group rounded-2xl p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
               style={{
-                background: "#FFFFFF",
-                boxShadow: "var(--shadow-card)",
-                borderRadius: "var(--radius-card)",
+                background: bg,
+                border: `1px solid ${accent}22`,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
               }}
             >
-              {/* Top row */}
-              <div className="mb-5 flex items-start justify-between">
-                <span
-                  className="text-3xl font-black leading-none"
-                  style={{ color: A }}
-                >
-                  {num}
-                </span>
-                <div
-                  className="flex h-8 w-8 items-center justify-center rounded-lg"
-                  style={{ background: SURFACE }}
-                >
-                  <Icon size={15} style={{ color: MUTED }} />
-                </div>
-              </div>
-
-              <h3
-                className="mb-2 text-base font-bold"
-                style={{ color: DARK }}
+              <div
+                className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl"
+                style={{ background: `${accent}18` }}
               >
+                <Icon size={18} style={{ color: accent }} />
+              </div>
+              <h3 className="mb-2 text-sm font-bold" style={{ color: DARK }}>
                 {title}
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
@@ -288,31 +365,91 @@ function HowItWorks() {
   );
 }
 
-/* ── Stats bar ──────────────────────────────────────────── */
-const STATS = [
-  { value: "$0.16", label: "US average cost per kWh" },
-  { value: "~30%", label: "of households overpay vs benchmark" },
-  { value: "$400+", label: "average annual overpayment found" },
+/* ── How it works ───────────────────────────────────────── */
+const STEPS = [
+  {
+    num: "01",
+    icon: Upload,
+    title: "Upload Your Bill",
+    body: "Drag and drop a photo or PDF of any utility bill. Any provider, any format.",
+  },
+  {
+    num: "02",
+    icon: Sparkles,
+    title: "Claude Analyzes It",
+    body: "AI extracts your usage, rate, and provider — then finds cheaper alternatives near you.",
+  },
+  {
+    num: "03",
+    icon: TrendingDown,
+    title: "Start Saving",
+    body: "Get your rate vs the benchmark, provider recommendations, and a personalized savings plan.",
+  },
 ];
 
-function StatsBar() {
+function HowItWorks() {
   return (
-    <section style={{ background: DARK }} className="py-16">
-      <div className="mx-auto max-w-4xl px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 [&>*+*]:border-t [&>*+*]:border-white/8 sm:[&>*+*]:border-t-0 sm:[&>*+*]:border-l sm:[&>*+*]:border-white/8">
-          {STATS.map(({ value, label }) => (
-            <div key={value} className="py-8 text-center sm:py-0 sm:px-8">
-              <p
-                className="text-4xl font-black tracking-tight"
-                style={{ color: A }}
-              >
-                {value}
-              </p>
-              <p
-                className="mt-2 text-sm leading-snug"
-                style={{ color: "rgba(255,255,255,0.55)" }}
-              >
-                {label}
+    <section id="how-it-works" className="py-24" style={{ background: SURFACE }}>
+      <div className="mx-auto max-w-5xl px-6">
+        <div className="mb-14 text-center">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: A }}>
+            Simple process
+          </p>
+          <h2 className="text-3xl font-bold tracking-tight" style={{ color: DARK }}>
+            How it works
+          </h2>
+          <p className="mt-3 text-sm" style={{ color: MUTED }}>
+            Three steps from bill to savings — powered by Claude AI.
+          </p>
+        </div>
+
+        <div className="relative grid gap-5 sm:grid-cols-3">
+          {/* Arrow connectors (desktop) */}
+          <div className="pointer-events-none absolute inset-x-0 top-10 hidden sm:flex items-center">
+            <div className="flex-1" />
+            {[0, 1].map((i) => (
+              <div key={i} className="flex flex-1 items-center justify-center">
+                <svg width="48" height="16" viewBox="0 0 48 16" fill="none">
+                  <path
+                    d="M0 8 L40 8 M34 2 L40 8 L34 14"
+                    stroke={A}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeOpacity="0.4"
+                  />
+                </svg>
+              </div>
+            ))}
+            <div className="flex-1" />
+          </div>
+
+          {STEPS.map(({ num, icon: Icon, title, body }) => (
+            <div
+              key={num}
+              className="group relative rounded-2xl p-7 transition-all duration-200 hover:-translate-y-1"
+              style={{
+                background: "#FFFFFF",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 8px 24px rgba(0,0,0,0.05)",
+                borderRadius: "16px",
+              }}
+            >
+              <div className="mb-5 flex items-start justify-between">
+                <span className="text-3xl font-black leading-none" style={{ color: A }}>
+                  {num}
+                </span>
+                <div
+                  className="flex h-8 w-8 items-center justify-center rounded-lg"
+                  style={{ background: SURFACE }}
+                >
+                  <Icon size={15} style={{ color: MUTED }} />
+                </div>
+              </div>
+              <h3 className="mb-2 text-base font-bold" style={{ color: DARK }}>
+                {title}
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
+                {body}
               </p>
             </div>
           ))}
@@ -322,84 +459,30 @@ function StatsBar() {
   );
 }
 
-/* ── Sample result teaser card ─────────────────────────── */
-function SampleResult() {
-  return (
-    <div
-      className="mx-auto mt-10 w-full max-w-xs rounded-2xl p-5 text-left select-none"
-      style={{
-        background: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-      }}
-    >
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest text-white/40">
-          Sample Output
-        </p>
-        <span
-          className="rounded-full px-2 py-0.5 text-xs font-bold"
-          style={{ background: "rgba(239,68,68,0.15)", color: "#FCA5A5" }}
-        >
-          ⚠ Overpaying
-        </span>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-white/60">Your rate</span>
-          <span className="font-bold text-white">$0.21 / kWh</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-white/60">US average</span>
-          <span className="font-semibold" style={{ color: A }}>$0.16 / kWh</span>
-        </div>
-        <div
-          className="mt-1 h-px w-full"
-          style={{ background: "rgba(255,255,255,0.06)" }}
-        />
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-white/60">Est. annual overpayment</span>
-          <span className="font-bold text-red-400">$312</span>
-        </div>
-      </div>
-
-      {/* Blur overlay to keep it as teaser */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-16 rounded-b-2xl"
-        style={{
-          background: "linear-gradient(to top, rgba(17,17,17,0.95), transparent)",
-        }}
-      />
-    </div>
-  );
-}
-
 /* ── Final CTA ─────────────────────────────────────────── */
 function FinalCTA() {
   return (
-    <section style={{ background: DARK }} className="pb-24 pt-8">
-      <div className="mx-auto max-w-2xl px-6 text-center relative">
-        <SampleResult />
-
-        <p className="mt-12 text-xs font-semibold uppercase tracking-widest" style={{ color: A }}>
+    <section
+      className="py-24"
+      style={{
+        background: DARK,
+      }}
+    >
+      <div className="mx-auto max-w-2xl px-6 text-center">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest" style={{ color: A }}>
           Ready to find out?
         </p>
-        <h2
-          className="mt-3 text-3xl font-bold text-white tracking-tight"
-        >
-          Check your rate in seconds
+        <h2 className="text-3xl font-bold tracking-tight text-white mb-4">
+          Check your rate in 10 seconds
         </h2>
-
-        {/* Social proof */}
-        <p className="mt-3 text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>
-          Join 2,000+ households who&apos;ve already checked their energy rate.
+        <p className="text-sm mb-8 max-w-md mx-auto" style={{ color: "rgba(255,255,255,0.4)" }}>
+          Upload your bill once. Get your rate vs the benchmark, cheaper providers near
+          you, and a personalized plan to start saving immediately.
         </p>
 
         <Link
           href="/upload"
-          className="mt-8 inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-200 hover:scale-105"
+          className="inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-200 hover:scale-105"
           style={{
             background: A,
             color: DARK,
@@ -412,8 +495,8 @@ function FinalCTA() {
           <span className="text-lg">→</span>
         </Link>
 
-        <p className="mt-4 text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
-          No account required · Results in under 10 seconds
+        <p className="mt-4 text-xs" style={{ color: "rgba(255,255,255,0.22)" }}>
+          No account required · No manual data entry · Results in under 10 seconds
         </p>
       </div>
     </section>
@@ -425,12 +508,9 @@ function Footer() {
   return (
     <footer
       className="border-t py-5"
-      style={{
-        background: SURFACE,
-        borderColor: "rgba(0,0,0,0.07)",
-      }}
+      style={{ background: SURFACE, borderColor: "rgba(0,0,0,0.07)" }}
     >
-      <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-6 sm:flex-row">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 sm:flex-row">
         <p className="text-xs" style={{ color: MUTED }}>
           © {new Date().getFullYear()} WattWise. All rights reserved.
         </p>
@@ -450,8 +530,9 @@ export default function HomePage() {
     <div style={{ background: "#FFFFFF", color: DARK }}>
       <Navbar />
       <Hero />
+      <StatsStrip />
+      <Features />
       <HowItWorks />
-      <StatsBar />
       <FinalCTA />
       <Footer />
     </div>
