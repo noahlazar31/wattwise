@@ -15,21 +15,6 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Set Railway environment variables
-        # Push all env vars to the service BEFORE deploying so the
-        # first boot already has them available.
-        run: |
-          railway variables set \
-            SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
-            SUPABASE_SERVICE_KEY="${{ secrets.SUPABASE_SERVICE_KEY }}" \
-            ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
-            ENVIRONMENT="production" \
-            FRONTEND_URL="${{ secrets.FRONTEND_URL }}" \
-            --service "${{ secrets.RAILWAY_SERVICE_NAME }}" \
-            --project "${{ secrets.RAILWAY_PROJECT_ID }}"
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
       - name: Deploy to Railway
         working-directory: backend
         run: |
