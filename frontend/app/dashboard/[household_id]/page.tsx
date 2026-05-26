@@ -5,41 +5,15 @@ import Link from "next/link";
 import { getBills, getInsights } from "@/lib/api";
 import type { Bill, Insight } from "@/lib/api";
 import UsageChart from "@/components/UsageChart";
+import StatCard from "@/components/StatCard";
+import InsightCard from "@/components/InsightCard";
 
 interface PageProps {
   params: Promise<{ household_id: string }>;
 }
 
-const INSIGHT_COLORS: Record<string, string> = {
-  overpaying_flag: "red",
-  avg_rate_vs_benchmark: "blue",
-  mom_usage_change: "purple",
-  estimated_annual_spend: "green",
-};
-
-function InsightBadge({ type }: { type: string }) {
-  const color = INSIGHT_COLORS[type] ?? "zinc";
-  const classes: Record<string, string> = {
-    red: "bg-red-50 border-red-200 text-red-700",
-    blue: "bg-blue-50 border-blue-200 text-blue-700",
-    purple: "bg-purple-50 border-purple-200 text-purple-700",
-    green: "bg-green-50 border-green-200 text-green-700",
-    zinc: "bg-zinc-50 border-zinc-200 text-zinc-700",
-  };
-  const icons: Record<string, string> = {
-    red: "⚠️",
-    blue: "📊",
-    purple: "📈",
-    green: "💰",
-    zinc: "💡",
-  };
-  return (
-    <span
-      className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${classes[color]}`}
-    >
-      {icons[color]}
-    </span>
-  );
+function SkeletonBlock({ className }: { className?: string }) {
+  return <div className={`shimmer rounded-xl ${className}`} />;
 }
 
 export default function DashboardPage({ params }: PageProps) {
@@ -55,7 +29,6 @@ export default function DashboardPage({ params }: PageProps) {
 
   useEffect(() => {
     if (!householdId) return;
-
     async function load() {
       try {
         const [billsRes, insightsRes] = await Promise.all([
@@ -64,237 +37,336 @@ export default function DashboardPage({ params }: PageProps) {
         ]);
         setBills(billsRes.bills);
         setInsights(insightsRes.insights);
-      } catch (err: unknown) {
+      } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
         setLoading(false);
       }
     }
-
     load();
   }, [householdId]);
 
-  const latestBill = bills[0];
+  const latest = bills[0];
+  const rate = latest
+    ? Number(latest.total_cost) / Number(latest.kwh_used)
+    : 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
-      {/* Nav */}
-      <header className="bg-white border-b border-zinc-100 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="text-2xl">⚡</span>
-            <span className="font-bold text-xl tracking-tight">WattWise</span>
-          </Link>
-          <Link
-            href="/upload"
-            className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
+    <div
+      className="relative min-h-screen overflow-x-hidden"
+      style={{ background: "#0A0F1E" }}
+    >
+      {/* Background orbs */}
+      <div className="orb orb-blue" style={{ top: "-100px", left: "-150px" }} />
+      <div className="orb orb-purple" style={{ bottom: "0px", right: "-100px" }} />
+
+      {/* ── Navbar ─────────────────────────────────────────────── */}
+      <header
+        className="sticky top-0 z-50 flex h-14 items-center justify-between px-6"
+        style={{
+          background: "rgba(10,15,30,0.8)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+        }}
+      >
+        <Link href="/" className="flex items-center gap-2 group">
+          <div
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-sm transition-all duration-200 group-hover:scale-110"
+            style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)" }}
           >
-            + Add another bill
-          </Link>
-        </div>
+            ⚡
+          </div>
+          <span className="text-sm font-semibold tracking-tight text-white">WattWise</span>
+        </Link>
+
+        <Link
+          href="/upload"
+          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-300 transition-all duration-200 hover:bg-white/5 hover:text-white"
+          style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+        >
+          <span className="text-blue-400">+</span>
+          Add bill
+        </Link>
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10">
+      {/* ── Main content ───────────────────────────────────────── */}
+      <main className="relative z-10 mx-auto max-w-5xl px-6 pb-20 pt-10">
+        {/* Loading skeleton */}
         {loading && (
-          <div className="flex flex-col items-center justify-center h-64 gap-4">
-            <div className="w-10 h-10 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-            <p className="text-zinc-400 text-sm">Loading your energy report…</p>
+          <div className="space-y-6">
+            <SkeletonBlock className="h-8 w-56" />
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => <SkeletonBlock key={i} className="h-28" />)}
+            </div>
+            <SkeletonBlock className="h-48" />
+            <SkeletonBlock className="h-36" />
+            <SkeletonBlock className="h-64" />
           </div>
         )}
 
+        {/* Error */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
-            <p className="text-red-600">⚠️ {error}</p>
+          <div
+            className="rounded-2xl p-6 text-sm text-red-400"
+            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)" }}
+          >
+            ⚠ {error}
           </div>
         )}
 
         {!loading && !error && (
           <div className="space-y-6">
-            {/* Header */}
-            <div>
-              <h1 className="text-2xl font-bold text-zinc-900">
-                Your Energy Report
+            {/* Page header */}
+            <div className="fade-up fade-up-1">
+              <h1 className="text-2xl font-bold tracking-tight text-white">
+                Energy Report
               </h1>
-              <p className="text-zinc-400 text-sm mt-1">
-                Household ID: <code className="font-mono">{householdId}</code>
+              <p className="mt-0.5 text-xs font-mono text-slate-600">
+                {householdId}
               </p>
             </div>
 
-            {/* Latest bill card */}
-            {latestBill ? (
-              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="font-semibold text-zinc-900">Latest Bill</h2>
-                  <span className="text-xs text-zinc-400 bg-zinc-50 px-3 py-1 rounded-full border border-zinc-100">
-                    {latestBill.utility_provider ?? "Unknown provider"}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-amber-50 rounded-xl p-4">
-                    <p className="text-xs text-amber-600 font-medium mb-1">Total Cost</p>
-                    <p className="text-2xl font-bold text-amber-700">
-                      ${Number(latestBill.total_cost).toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="bg-zinc-50 rounded-xl p-4">
-                    <p className="text-xs text-zinc-500 font-medium mb-1">kWh Used</p>
-                    <p className="text-2xl font-bold text-zinc-800">
-                      {Number(latestBill.kwh_used).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="bg-zinc-50 rounded-xl p-4">
-                    <p className="text-xs text-zinc-500 font-medium mb-1">Rate</p>
-                    <p className="text-2xl font-bold text-zinc-800">
-                      ${(Number(latestBill.total_cost) / Number(latestBill.kwh_used)).toFixed(4)}
-                    </p>
-                    <p className="text-xs text-zinc-400">/kWh</p>
-                  </div>
-                  <div className="bg-zinc-50 rounded-xl p-4">
-                    <p className="text-xs text-zinc-500 font-medium mb-1">Period</p>
-                    <p className="text-sm font-semibold text-zinc-800 leading-tight">
-                      {new Date(latestBill.billing_period_start).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                      {" – "}
-                      {new Date(latestBill.billing_period_end).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
-                </div>
-
-                {(latestBill.rate_plan || latestBill.account_last_four) && (
-                  <div className="mt-4 flex gap-3 flex-wrap">
-                    {latestBill.rate_plan && (
-                      <span className="text-xs text-zinc-500 bg-zinc-50 border border-zinc-100 px-3 py-1 rounded-full">
-                        Rate plan: {latestBill.rate_plan}
-                      </span>
-                    )}
-                    {latestBill.account_last_four && (
-                      <span className="text-xs text-zinc-500 bg-zinc-50 border border-zinc-100 px-3 py-1 rounded-full">
-                        Account: ****{latestBill.account_last_four}
-                      </span>
-                    )}
-                  </div>
-                )}
+            {/* ── Stat tiles ───────────────────────────────────── */}
+            {latest ? (
+              <div className="fade-up fade-up-2 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <StatCard
+                  label="Total Cost"
+                  value={Number(latest.total_cost)}
+                  prefix="$"
+                  decimals={2}
+                  progress={Math.min(Number(latest.total_cost) / 200, 1)}
+                  accent="#3B82F6"
+                  delay={0}
+                />
+                <StatCard
+                  label="kWh Used"
+                  value={Number(latest.kwh_used)}
+                  decimals={1}
+                  progress={Math.min(Number(latest.kwh_used) / 1000, 1)}
+                  accent="#8B5CF6"
+                  delay={80}
+                  suffix=" kWh"
+                />
+                <StatCard
+                  label="Effective Rate"
+                  value={rate}
+                  prefix="$"
+                  suffix="/kWh"
+                  decimals={4}
+                  progress={Math.min(rate / 0.3, 1)}
+                  accent={rate > 0.192 ? "#EF4444" : "#22C55E"}
+                  delay={160}
+                  sub={rate > 0.192 ? "above US avg" : "below US avg"}
+                />
+                <StatCard
+                  label="Billing Days"
+                  value={Math.ceil(
+                    (new Date(latest.billing_period_end).getTime() -
+                      new Date(latest.billing_period_start).getTime()) /
+                      86400000
+                  )}
+                  decimals={0}
+                  progress={0.85}
+                  accent="#F59E0B"
+                  delay={240}
+                  sub={new Date(latest.billing_period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " – " +
+                    new Date(latest.billing_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit" })}
+                />
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-8 text-center">
-                <p className="text-zinc-400">No bills found yet.</p>
+              <div className="fade-up fade-up-2 rounded-2xl p-8 text-center text-sm text-slate-500"
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                No bills uploaded yet.
               </div>
             )}
 
-            {/* Insights */}
-            {insights.length > 0 && (
-              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-                <h2 className="font-semibold text-zinc-900 mb-5">
-                  AI Insights
-                </h2>
-                <div className="space-y-3">
-                  {insights.map((insight) => (
-                    <div
-                      key={insight.id}
-                      className={`rounded-xl p-4 border flex gap-3 items-start ${
-                        insight.insight_type === "overpaying_flag"
-                          ? "bg-red-50 border-red-200"
-                          : insight.insight_type === "estimated_annual_spend"
-                          ? "bg-green-50 border-green-200"
-                          : "bg-zinc-50 border-zinc-100"
-                      }`}
+            {/* ── Latest bill metadata ─────────────────────────── */}
+            {latest && (
+              <div
+                className="fade-up fade-up-3 rounded-2xl p-5"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    Latest Bill
+                  </p>
+                  {latest.utility_provider && (
+                    <span
+                      className="rounded-full px-3 py-1 text-xs font-medium text-blue-300"
+                      style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)" }}
                     >
-                      <InsightBadge type={insight.insight_type} />
-                      <p
-                        className={`text-sm leading-relaxed ${
-                          insight.insight_type === "overpaying_flag"
-                            ? "text-red-700"
-                            : insight.insight_type === "estimated_annual_spend"
-                            ? "text-green-700"
-                            : "text-zinc-700"
-                        }`}
-                      >
-                        {insight.insight_value}
-                      </p>
+                      {latest.utility_provider}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {latest.rate_plan && (
+                    <div
+                      className="rounded-lg px-3 py-2 text-xs"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                    >
+                      <span className="text-slate-500">Rate Plan </span>
+                      <span className="font-mono font-semibold text-slate-200">{latest.rate_plan}</span>
                     </div>
+                  )}
+                  {latest.account_last_four && (
+                    <div
+                      className="rounded-lg px-3 py-2 text-xs"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                    >
+                      <span className="text-slate-500">Account </span>
+                      <span className="font-mono font-semibold text-slate-200">••••{latest.account_last_four}</span>
+                    </div>
+                  )}
+                  <div
+                    className="rounded-lg px-3 py-2 text-xs"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+                  >
+                    <span className="text-slate-500">Period </span>
+                    <span className="font-mono font-semibold text-slate-200">
+                      {new Date(latest.billing_period_start).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {" – "}
+                      {new Date(latest.billing_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── AI Insights ──────────────────────────────────── */}
+            {insights.length > 0 && (
+              <div className="fade-up fade-up-4 space-y-3">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                  AI Insights
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {insights.map((insight) => (
+                    <InsightCard key={insight.id} insight={insight} />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Usage chart */}
+            {/* ── Usage chart ──────────────────────────────────── */}
             {bills.length > 0 && (
-              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-                <h2 className="font-semibold text-zinc-900 mb-5">
-                  kWh Usage Over Time
-                </h2>
+              <div
+                className="fade-up fade-up-5 rounded-2xl p-6"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                }}
+              >
+                <div className="mb-5 flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    kWh Usage Over Time
+                  </p>
+                  <span
+                    className="rounded-full px-2 py-0.5 text-xs font-medium text-blue-400"
+                    style={{ background: "rgba(59,130,246,0.1)" }}
+                  >
+                    {bills.length} bill{bills.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
                 <UsageChart bills={bills} />
               </div>
             )}
 
-            {/* All bills table */}
+            {/* ── Bills table ──────────────────────────────────── */}
             {bills.length > 1 && (
-              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-                <h2 className="font-semibold text-zinc-900 mb-5">
-                  All Bills ({bills.length})
-                </h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-zinc-400 border-b border-zinc-100">
-                        <th className="pb-3 font-medium">Period</th>
-                        <th className="pb-3 font-medium">Provider</th>
-                        <th className="pb-3 font-medium text-right">kWh</th>
-                        <th className="pb-3 font-medium text-right">Cost</th>
-                        <th className="pb-3 font-medium text-right">Rate</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-50">
-                      {bills.map((bill) => (
-                        <tr key={bill.id} className="hover:bg-zinc-50 transition-colors">
-                          <td className="py-3 text-zinc-700">
-                            {new Date(bill.billing_period_start).toLocaleDateString("en-US", {
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </td>
-                          <td className="py-3 text-zinc-500">
-                            {bill.utility_provider ?? "—"}
-                          </td>
-                          <td className="py-3 text-right text-zinc-700 font-mono">
-                            {Number(bill.kwh_used).toLocaleString()}
-                          </td>
-                          <td className="py-3 text-right text-zinc-700 font-mono">
-                            ${Number(bill.total_cost).toFixed(2)}
-                          </td>
-                          <td className="py-3 text-right text-zinc-500 font-mono text-xs">
-                            ${(Number(bill.total_cost) / Number(bill.kwh_used)).toFixed(4)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div
+                className="fade-up fade-up-6 rounded-2xl overflow-hidden"
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="px-6 py-4 border-b border-white/5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                    Bill History
+                  </p>
                 </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/5">
+                      {["Period", "Provider", "kWh", "Cost", "Rate"].map((h) => (
+                        <th key={h} className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bills.map((bill, i) => (
+                      <tr
+                        key={bill.id}
+                        className="border-b border-white/[0.03] transition-colors duration-150 hover:bg-white/[0.02]"
+                      >
+                        <td className="px-6 py-3.5 text-slate-300 font-medium">
+                          {new Date(bill.billing_period_start).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                        </td>
+                        <td className="px-6 py-3.5 text-slate-500">
+                          {bill.utility_provider ?? "—"}
+                        </td>
+                        <td className="px-6 py-3.5 font-mono text-slate-300">
+                          {Number(bill.kwh_used).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-3.5 font-mono text-slate-300">
+                          ${Number(bill.total_cost).toFixed(2)}
+                        </td>
+                        <td className="px-6 py-3.5 font-mono text-xs text-slate-500">
+                          ${(Number(bill.total_cost) / Number(bill.kwh_used)).toFixed(4)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
 
-            {/* Bottom CTA */}
-            <div className="bg-zinc-900 rounded-2xl p-8 text-center">
-              <h3 className="text-white font-semibold text-lg mb-2">
-                Got another bill?
-              </h3>
-              <p className="text-zinc-400 text-sm mb-5">
-                Add more bills to get better insights and track your usage over
-                time.
-              </p>
-              <Link
-                href="/upload"
-                className="inline-flex items-center gap-2 bg-amber-400 text-zinc-900 px-6 py-3 rounded-xl font-semibold text-sm hover:bg-amber-300 transition-colors"
-              >
-                Add Another Bill →
-              </Link>
+            {/* ── CTA banner ───────────────────────────────────── */}
+            <div
+              className="relative overflow-hidden rounded-2xl p-10 text-center"
+              style={{
+                background: "linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(139,92,246,0.12) 50%, rgba(59,130,246,0.08) 100%)",
+                border: "1px solid rgba(59,130,246,0.2)",
+              }}
+            >
+              {/* Subtle grid */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.03]"
+                style={{
+                  backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+                  backgroundSize: "32px 32px",
+                }}
+              />
+
+              <div className="relative z-10">
+                <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-3">
+                  Track more · save more
+                </p>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  Got another bill?
+                </h3>
+                <p className="text-sm text-slate-400 mb-7 max-w-sm mx-auto">
+                  Each bill you add improves your insights and makes your annual forecast more accurate.
+                </p>
+                <Link
+                  href="/upload"
+                  className="glow-btn inline-flex items-center gap-2 rounded-xl bg-blue-500 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-blue-400 hover:scale-105"
+                >
+                  Upload Another Bill
+                  <span>→</span>
+                </Link>
+              </div>
             </div>
           </div>
         )}
