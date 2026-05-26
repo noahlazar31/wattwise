@@ -1,9 +1,7 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config import get_settings
 from routers import bills, insights, households
-
-settings = get_settings()
 
 app = FastAPI(
     title="WattWise API",
@@ -13,21 +11,18 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS — allow the Next.js frontend and Vercel deployments
-origins = [
+# CORS — read origins lazily from env so startup never crashes on missing vars
+_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
 ]
-if settings.environment == "production":
-    # Add your production Vercel URL here or read from env
-    import os
-    vercel_url = os.getenv("FRONTEND_URL", "")
-    if vercel_url:
-        origins.append(vercel_url)
+_frontend_url = os.getenv("FRONTEND_URL", "")
+if _frontend_url:
+    _origins.append(_frontend_url)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
