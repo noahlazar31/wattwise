@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useUser, SignInButton, Show } from "@clerk/nextjs";
+import { SignInButton, Show } from "@clerk/nextjs";
 import { getBills, getInsights, linkHouseholdToUser } from "@/lib/api";
 import type { Bill, Insight } from "@/lib/api";
 import UsageChart from "@/components/UsageChart";
@@ -30,7 +30,6 @@ function parseSafe<T>(str: string): T | null {
 }
 
 export default function DashboardPage({ params }: PageProps) {
-  const { user } = useUser();
   const [householdId, setHouseholdId] = useState<string | null>(null);
   const [bills, setBills] = useState<Bill[]>([]);
   const [insights, setInsights] = useState<Insight[]>([]);
@@ -62,10 +61,11 @@ export default function DashboardPage({ params }: PageProps) {
 
   // If signed in, silently link this household to their account
   useEffect(() => {
-    if (user?.id && householdId) {
-      linkHouseholdToUser(householdId, user.id);
-    }
-  }, [user, householdId]);
+    if (!householdId) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const clerkUserId = (window as any).Clerk?.user?.id;
+    if (clerkUserId) linkHouseholdToUser(householdId, clerkUserId);
+  }, [householdId]);
 
   const latest = bills[0];
   const rate = latest ? Number(latest.total_cost) / Number(latest.kwh_used) : 0;

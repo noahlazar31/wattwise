@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -48,18 +47,34 @@ export const metadata: Metadata = {
   },
 };
 
+// Clerk is optional — app works without it until keys are added to Vercel
+let ClerkProvider: React.ComponentType<{ children: React.ReactNode }> | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    ClerkProvider = require("@clerk/nextjs").ClerkProvider;
+  }
+} catch {
+  // Clerk not available
+}
+
+function MaybeClerk({ children }: { children: React.ReactNode }) {
+  if (ClerkProvider) return <ClerkProvider>{children}</ClerkProvider>;
+  return <>{children}</>;
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <MaybeClerk>
       <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
         <body className="min-h-full flex flex-col" style={{ background: "#0A0F1E", color: "#F1F5F9" }}>
           {children}
         </body>
       </html>
-    </ClerkProvider>
+    </MaybeClerk>
   );
 }

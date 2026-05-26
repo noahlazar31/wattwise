@@ -1,10 +1,22 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher(["/my-bills(.*)"]);
+// Only enforce Clerk auth if keys are configured
+const hasClerk = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect();
-});
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let clerkProxy: any = null;
+if (hasClerk) {
+  const { clerkMiddleware, createRouteMatcher } = require("@clerk/nextjs/server");
+  const isProtectedRoute = createRouteMatcher(["/my-bills(.*)"]);
+  clerkProxy = clerkMiddleware(async (auth: any, req: NextRequest) => {
+    if (isProtectedRoute(req)) await auth.protect();
+  });
+}
+
+export default function proxy(req: NextRequest) {
+  if (clerkProxy) return clerkProxy(req);
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

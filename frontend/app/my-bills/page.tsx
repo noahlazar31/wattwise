@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { getUserHouseholds, type HouseholdSummary } from "@/lib/api";
 
@@ -10,17 +9,33 @@ function SkeletonBlock({ className }: { className?: string }) {
 }
 
 export default function MyBillsPage() {
-  const { user, isLoaded } = useUser();
+  // useUser is only available when Clerk is configured
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [clerkUser, setClerkUser] = useState<any>(null);
   const [households, setHouseholds] = useState<HouseholdSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isLoaded || !user) return;
-    getUserHouseholds(user.id)
-      .then((res) => setHouseholds(res.households))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [user, isLoaded]);
+    // Dynamically access Clerk only if it's available
+    async function loadUser() {
+      try {
+        const { useUser } = await import("@clerk/nextjs");
+        // We can't call hooks dynamically, so we use the Clerk global
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const clerk = (window as any).Clerk;
+        if (clerk?.user) {
+          setClerkUser(clerk.user);
+          const res = await getUserHouseholds(clerk.user.id);
+          setHouseholds(res.households);
+        }
+      } catch {
+        // Clerk not available
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadUser();
+  }, []);
 
   return (
     <div className="dark-page relative min-h-screen overflow-x-hidden" style={{ background: "#0A0F1E" }}>
@@ -49,7 +64,7 @@ export default function MyBillsPage() {
         <div className="fade-up fade-up-1 mb-8">
           <h1 className="text-2xl font-bold text-white">My Bills</h1>
           <p className="text-xs text-slate-600 mt-0.5">
-            {user?.primaryEmailAddress?.emailAddress}
+            {clerkUser?.primaryEmailAddress?.emailAddress}
           </p>
         </div>
 

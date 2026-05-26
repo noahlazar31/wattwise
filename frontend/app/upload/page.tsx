@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
 import { uploadBill, createHousehold, linkHouseholdToUser } from "@/lib/api";
 
 type Status = "idle" | "uploading" | "parsing" | "done" | "error";
@@ -62,7 +61,6 @@ function StepIndicator({ status }: { status: Status }) {
 
 export default function UploadPage() {
   const router = useRouter();
-  const { user } = useUser();
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -85,9 +83,9 @@ export default function UploadPage() {
       await uploadBill(file, householdId);
 
       // If signed in, link this household to their account
-      if (user?.id) {
-        await linkHouseholdToUser(householdId, user.id);
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const clerkUserId = (window as any).Clerk?.user?.id;
+      if (clerkUserId) await linkHouseholdToUser(householdId, clerkUserId);
 
       setStatus("done");
       setTimeout(() => {
