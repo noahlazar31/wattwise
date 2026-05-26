@@ -11,19 +11,12 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# CORS — read origins lazily from env so startup never crashes on missing vars
-_origins = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-]
-_frontend_url = os.getenv("FRONTEND_URL", "")
-if _frontend_url:
-    _origins.append(_frontend_url)
-
+# CORS — allow all origins so any Vercel/local frontend can reach the API.
+# Tighten this to specific domains once you have a stable production URL.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
