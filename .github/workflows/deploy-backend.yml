@@ -26,7 +26,7 @@ jobs:
         run: |
           railway variables set \
             SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
-            SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}" \
+            SUPABASE_SERVICE_KEY="${{ secrets.SUPABASE_SERVICE_KEY }}" \
             ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
             ENVIRONMENT="production" \
             FRONTEND_URL="${{ secrets.FRONTEND_URL }}" \

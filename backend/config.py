@@ -4,7 +4,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     supabase_url: str
-    supabase_anon_key: str
+    supabase_service_key: str  # service_role key — backend only, never expose to frontend
     anthropic_api_key: str
     environment: str = "development"
     allowed_origins: list[str] = ["http://localhost:3000", "https://*.vercel.app"]
