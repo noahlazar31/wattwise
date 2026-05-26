@@ -1,26 +1,12 @@
 name: Deploy Backend (Railway)
-
+# Railway auto-deploys from GitHub on every push to main.
+# This file is kept as a placeholder — no manual deploy needed.
 on:
-  workflow_dispatch: # manual only — Railway auto-deploys from GitHub natively
+  workflow_dispatch:
 
 jobs:
-  deploy-backend:
-    name: Deploy FastAPI to Railway
+  info:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway
-        working-directory: backend
-        run: railway up --service "${{ secrets.RAILWAY_SERVICE_NAME }}" --environment production --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
-
-      - name: Confirm deploy
-        run: echo "✅ Backend deployed to Railway"
+      - name: Info
+        run: echo "✅ Railway deploys automatically on push to main. No action needed."
