@@ -1,12 +1,7 @@
 name: Deploy Backend (Railway)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "backend/**"
-      - ".github/workflows/deploy-backend.yml"
-  workflow_dispatch:
+  workflow_dispatch: # manual only — Railway auto-deploys from GitHub natively
 
 jobs:
   deploy-backend:
