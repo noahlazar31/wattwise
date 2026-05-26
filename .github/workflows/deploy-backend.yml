@@ -21,6 +21,7 @@ jobs:
           railway up \
             --service "${{ secrets.RAILWAY_SERVICE_NAME }}" \
             --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
+            --environment production \
             --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
