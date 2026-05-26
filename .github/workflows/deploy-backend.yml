@@ -20,15 +20,9 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy to Railway
-        working-directory: backend
-        run: railway up --service wattwise-backend --detach
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
       - name: Set Railway environment variables
-        # Sets/updates env vars on the Railway service so the app
-        # picks them up on the next deploy or restart.
+        # Push all env vars to the service BEFORE deploying so the
+        # first boot already has them available.
         run: |
           railway variables set \
             SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
@@ -36,7 +30,18 @@ jobs:
             ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
             ENVIRONMENT="production" \
             FRONTEND_URL="${{ secrets.FRONTEND_URL }}" \
-            --service wattwise-backend
+            --service "${{ secrets.RAILWAY_SERVICE_NAME }}" \
+            --project "${{ secrets.RAILWAY_PROJECT_ID }}"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+      - name: Deploy to Railway
+        working-directory: backend
+        run: |
+          railway up \
+            --service "${{ secrets.RAILWAY_SERVICE_NAME }}" \
+            --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
+            --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
