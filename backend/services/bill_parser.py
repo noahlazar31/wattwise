@@ -65,7 +65,7 @@ def parse_bill_with_claude(file_bytes: bytes, filename: str) -> dict:
         ]
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=1024,
         messages=[{"role": "user", "content": content}],
     )
