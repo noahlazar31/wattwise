@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { SignInButton, Show } from "@clerk/nextjs";
 import { getBills, getInsights, linkHouseholdToUser } from "@/lib/api";
 import type { Bill, Insight } from "@/lib/api";
 import UsageChart from "@/components/UsageChart";
@@ -173,32 +172,29 @@ export default function DashboardPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* ── Save to account banner (signed-out users) ──────── */}
-            <Show when="signed-out">
-              <div
-                className="fade-up fade-up-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl p-4"
-                style={{
-                  background: "rgba(59,130,246,0.07)",
-                  border: "1px solid rgba(59,130,246,0.15)",
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">💾</span>
-                  <div>
-                    <p className="text-sm font-semibold text-white">Save this analysis</p>
-                    <p className="text-xs text-slate-500">Create a free account to access your history anytime.</p>
-                  </div>
+            {/* ── Save to account banner ──────────────────────────── */}
+            <div
+              className="fade-up fade-up-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl p-4"
+              style={{
+                background: "rgba(59,130,246,0.07)",
+                border: "1px solid rgba(59,130,246,0.15)",
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">💾</span>
+                <div>
+                  <p className="text-sm font-semibold text-white">Save this analysis</p>
+                  <p className="text-xs text-slate-500">Create a free account to access your history anytime.</p>
                 </div>
-                <SignInButton mode="modal">
-                  <button
-                    className="shrink-0 rounded-xl px-4 py-2 text-xs font-semibold text-blue-400 transition-all hover:scale-105"
-                    style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.2)" }}
-                  >
-                    Create free account →
-                  </button>
-                </SignInButton>
               </div>
-            </Show>
+              <Link
+                href="/sign-up"
+                className="shrink-0 rounded-xl px-4 py-2 text-xs font-semibold text-blue-400 transition-all hover:scale-105"
+                style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.2)" }}
+              >
+                Create free account →
+              </Link>
+            </div>
 
             {/* ── Savings potential banner ───────────────────────── */}
             {totalSavings > 0 && (

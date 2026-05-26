@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Upload, Sparkles, TrendingDown, BarChart3 } from "lucide-react";
-import { SignInButton, Show, UserButton } from "@clerk/nextjs";
 
 const A = "#F5A623";
 const DARK = "#111111";
@@ -42,19 +41,9 @@ function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Show when="signed-in">
-            <Link href="/my-bills" className="hidden sm:block text-sm font-medium transition-colors hover:text-gray-900" style={{ color: MUTED }}>
-              My Bills
-            </Link>
-            <UserButton />
-          </Show>
-          <Show when="signed-out">
-            <SignInButton mode="modal">
-              <button className="hidden sm:block text-sm font-medium transition-colors hover:text-gray-900" style={{ color: MUTED }}>
-                Sign in
-              </button>
-            </SignInButton>
-          </Show>
+          <Link href="/sign-in" className="hidden sm:block text-sm font-medium transition-colors hover:text-gray-900" style={{ color: MUTED }}>
+            Sign in
+          </Link>
           <Link
             href="/upload"
             className="rounded-full px-4 py-2 text-sm font-semibold transition-all duration-150 hover:scale-105 hover:brightness-95"
