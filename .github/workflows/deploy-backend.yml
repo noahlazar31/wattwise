@@ -17,14 +17,10 @@ jobs:
 
       - name: Deploy to Railway
         working-directory: backend
-        run: |
-          railway up \
-            --service "${{ secrets.RAILWAY_SERVICE_NAME }}" \
-            --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
-            --environment production \
-            --detach
+        run: railway up --service "${{ secrets.RAILWAY_SERVICE_NAME }}" --environment production --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
 
       - name: Confirm deploy
         run: echo "✅ Backend deployed to Railway"
