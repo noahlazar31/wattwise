@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getBills, getInsights } from "@/lib/api";
+import { useUser, SignInButton, Show } from "@clerk/nextjs";
+import { getBills, getInsights, linkHouseholdToUser } from "@/lib/api";
 import type { Bill, Insight } from "@/lib/api";
 import UsageChart from "@/components/UsageChart";
 import StatCard from "@/components/StatCard";
 import InsightCard from "@/components/InsightCard";
 import RecommendationCard, { type ProviderRec } from "@/components/RecommendationCard";
 import SavingsTipCard, { type SavingsTip } from "@/components/SavingsTipCard";
+import EmailCapture from "@/components/EmailCapture";
+import ShareButtons from "@/components/ShareButtons";
 
 interface PageProps {
   params: Promise<{ household_id: string }>;
@@ -27,6 +30,7 @@ function parseSafe<T>(str: string): T | null {
 }
 
 export default function DashboardPage({ params }: PageProps) {
+  const { user } = useUser();
   const [householdId, setHouseholdId] = useState<string | null>(null);
   const [bills, setBills] = useState<Bill[]>([]);
   const [insights, setInsights] = useState<Insight[]>([]);
@@ -55,6 +59,13 @@ export default function DashboardPage({ params }: PageProps) {
     }
     load();
   }, [householdId]);
+
+  // If signed in, silently link this household to their account
+  useEffect(() => {
+    if (user?.id && householdId) {
+      linkHouseholdToUser(householdId, user.id);
+    }
+  }, [user, householdId]);
 
   const latest = bills[0];
   const rate = latest ? Number(latest.total_cost) / Number(latest.kwh_used) : 0;
@@ -148,14 +159,46 @@ export default function DashboardPage({ params }: PageProps) {
           <div className="space-y-6">
 
             {/* ── Page header ───────────────────────────────────── */}
-            <div className="fade-up fade-up-1">
-              <h1 className="text-2xl font-bold tracking-tight text-white">
-                Energy Report
-              </h1>
-              <p className="mt-0.5 text-xs font-mono text-slate-700">
-                {householdId}
-              </p>
+            <div className="fade-up fade-up-1 flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-white">
+                  Energy Report
+                </h1>
+                <p className="mt-0.5 text-xs font-mono text-slate-700">
+                  {householdId}
+                </p>
+              </div>
+              {householdId && (
+                <ShareButtons householdId={householdId} annualSavings={totalSavings} />
+              )}
             </div>
+
+            {/* ── Save to account banner (signed-out users) ──────── */}
+            <Show when="signed-out">
+              <div
+                className="fade-up fade-up-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl p-4"
+                style={{
+                  background: "rgba(59,130,246,0.07)",
+                  border: "1px solid rgba(59,130,246,0.15)",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">💾</span>
+                  <div>
+                    <p className="text-sm font-semibold text-white">Save this analysis</p>
+                    <p className="text-xs text-slate-500">Create a free account to access your history anytime.</p>
+                  </div>
+                </div>
+                <SignInButton mode="modal">
+                  <button
+                    className="shrink-0 rounded-xl px-4 py-2 text-xs font-semibold text-blue-400 transition-all hover:scale-105"
+                    style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.2)" }}
+                  >
+                    Create free account →
+                  </button>
+                </SignInButton>
+              </div>
+            </Show>
 
             {/* ── Savings potential banner ───────────────────────── */}
             {totalSavings > 0 && (
@@ -488,6 +531,11 @@ export default function DashboardPage({ params }: PageProps) {
                   </tbody>
                 </table>
               </div>
+            )}
+
+            {/* ── Email capture ────────────────────────────────── */}
+            {householdId && (
+              <EmailCapture householdId={householdId} />
             )}
 
             {/* ── CTA banner ───────────────────────────────────── */}

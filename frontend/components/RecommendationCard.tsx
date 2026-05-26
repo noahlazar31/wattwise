@@ -1,5 +1,7 @@
 "use client";
 
+import { getAffiliateLink } from "@/lib/affiliates";
+
 export interface ProviderRec {
   name: string;
   estimated_rate: number;
@@ -16,10 +18,11 @@ interface RecommendationCardProps {
 
 export default function RecommendationCard({ rec, currentRate, index }: RecommendationCardProps) {
   const savingsPct = Math.round(((currentRate - rec.estimated_rate) / currentRate) * 100);
+  const affiliateUrl = getAffiliateLink(rec.name);
 
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1"
+      className="group relative flex flex-col overflow-hidden rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1"
       style={{
         background: "rgba(34,197,94,0.05)",
         border: "1px solid rgba(34,197,94,0.15)",
@@ -76,7 +79,7 @@ export default function RecommendationCard({ rec, currentRate, index }: Recommen
         </div>
       </div>
 
-      {/* Savings pill */}
+      {/* Savings */}
       <div
         className="relative rounded-xl p-4 text-center mb-3"
         style={{
@@ -94,7 +97,27 @@ export default function RecommendationCard({ rec, currentRate, index }: Recommen
         </p>
       </div>
 
-      <p className="relative text-xs text-slate-500 leading-relaxed">{rec.description}</p>
+      <p className="relative text-xs text-slate-500 leading-relaxed mb-4 flex-1">
+        {rec.description}
+      </p>
+
+      {/* Affiliate CTA */}
+      <a
+        href={affiliateUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="relative flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:scale-105 hover:brightness-110"
+        style={{
+          background: "rgba(34,197,94,0.75)",
+          border: "1px solid rgba(34,197,94,0.4)",
+        }}
+        onClick={() => {
+          // Track click (add analytics here later)
+          console.log(`Affiliate click: ${rec.name}`);
+        }}
+      >
+        Switch Now →
+      </a>
     </div>
   );
 }

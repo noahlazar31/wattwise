@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import DropZone from "@/components/DropZone";
-import { uploadBill, createHousehold } from "@/lib/api";
+import { useUser } from "@clerk/nextjs";
+import { uploadBill, createHousehold, linkHouseholdToUser } from "@/lib/api";
 
 type Status = "idle" | "uploading" | "parsing" | "done" | "error";
 
@@ -62,6 +62,7 @@ function StepIndicator({ status }: { status: Status }) {
 
 export default function UploadPage() {
   const router = useRouter();
+  const { user } = useUser();
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -82,6 +83,11 @@ export default function UploadPage() {
 
       setStatus("parsing");
       await uploadBill(file, householdId);
+
+      // If signed in, link this household to their account
+      if (user?.id) {
+        await linkHouseholdToUser(householdId, user.id);
+      }
 
       setStatus("done");
       setTimeout(() => {

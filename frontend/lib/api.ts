@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://wattwise-production-b4ae.up.railway.app";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "https://wattwise-production-b4ae.up.railway.app";
 
 export interface Bill {
   id: string;
@@ -20,6 +21,12 @@ export interface Insight {
   insight_type: string;
   insight_value: string;
   generated_at: string;
+}
+
+export interface HouseholdSummary {
+  id: string;
+  created_at: string;
+  latest_bill: Bill | null;
 }
 
 export async function uploadBill(
@@ -70,4 +77,35 @@ export async function createHousehold(data: {
   });
   if (!res.ok) throw new Error("Failed to create household");
   return res.json();
+}
+
+export async function linkHouseholdToUser(
+  householdId: string,
+  clerkUserId: string
+): Promise<void> {
+  await fetch(`${API_URL}/households/${householdId}/link`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clerk_user_id: clerkUserId }),
+  }).catch(() => {}); // silent fail — never block UX for this
+}
+
+export async function getUserHouseholds(
+  clerkUserId: string
+): Promise<{ households: HouseholdSummary[] }> {
+  const res = await fetch(`${API_URL}/households/user/${clerkUserId}`);
+  if (!res.ok) throw new Error("Failed to fetch households");
+  return res.json();
+}
+
+export async function captureEmail(
+  email: string,
+  householdId?: string,
+  source = "dashboard"
+): Promise<void> {
+  await fetch(`${API_URL}/email-capture`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, household_id: householdId, source }),
+  }).catch(() => {}); // silent fail
 }

@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import bills, insights, households
+from routers import bills, insights, households, emails
 
 app = FastAPI(
     title="WattWise API",
@@ -25,6 +25,7 @@ app.add_middleware(
 app.include_router(bills.router, tags=["Bills"])
 app.include_router(insights.router, tags=["Insights"])
 app.include_router(households.router, tags=["Households"])
+app.include_router(emails.router, tags=["Email"])
 
 
 @app.get("/health", tags=["Health"])
