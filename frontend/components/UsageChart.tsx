@@ -62,7 +62,7 @@ export default function UsageChart({ bills }: UsageChartProps) {
               boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
               fontSize: 13,
             }}
-            formatter={(value: number) => [`${value} kWh`, "Usage"]}
+            formatter={(value) => [`${value} kWh`, "Usage"]}
           />
           <Line
             type="monotone"
