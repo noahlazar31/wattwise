@@ -53,8 +53,7 @@ export default function DashboardPage({ params }: PageProps) {
 
   return (
     <div
-      className="relative min-h-screen overflow-x-hidden"
-      style={{ background: "#0A0F1E" }}
+      className="dark-page relative min-h-screen overflow-x-hidden"
     >
       {/* Background orbs */}
       <div className="orb orb-blue" style={{ top: "-100px", left: "-150px" }} />
